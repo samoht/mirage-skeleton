@@ -6,17 +6,25 @@ open Mirage
  *)
 let mode =
   try match String.lowercase (Unix.getenv "FS") with
-    | "fat" -> `Fat
-    | _     -> `Crunch
+    | "fat"   -> `Fat
+    | "irmin" -> `Irmin
+    | _       -> `Crunch
   with Not_found ->
     `Crunch
 
+let uri = match mode with
+  | `Fat | `Crunch -> ""
+  | `Irmin ->
+    try Unix.getenv "URI" with Not_found ->
+      Printf.eprintf "The Irmin FS backend needs URI to be set.\n%!";
+      exit 1
+
+let path = match mode with
+  | `Fat | `Crunch -> None
+  | `Irmin -> try Some (Unix.getenv "FSROOT") with Not_found -> None
+
 let fat_ro dir =
   kv_ro_of_fs (fat_of_files ~dir ())
-
-let fs = match mode with
-  | `Fat    -> fat_ro "./htdocs"
-  | `Crunch -> crunch "./htdocs"
 
 let net =
   try match Sys.getenv "NET" with
@@ -31,13 +39,20 @@ let dhcp =
     | _  -> true
   with Not_found -> false
 
-let stack console =
-  match net, dhcp with
-  | `Direct, true  -> direct_stackv4_with_dhcp console tap0
-  | `Direct, false -> direct_stackv4_with_default_ipv4 console tap0
-  | `Socket, _     -> socket_stackv4 console [Ipaddr.V4.any]
+let console0 = default_console
 
-let http_srv = http_server (conduit_direct ~tls:true (stack default_console))
+let stack =
+  match net, dhcp with
+  | `Direct, true  -> direct_stackv4_with_dhcp console0 tap0
+  | `Direct, false -> direct_stackv4_with_default_ipv4 console0 tap0
+  | `Socket, _     -> socket_stackv4 console0 [Ipaddr.V4.any]
+
+let fs = match mode with
+  | `Fat    -> fat_ro "./htdocs"
+  | `Crunch -> crunch "./htdocs"
+  | `Irmin  -> irmin stack ?path uri
+
+let http_srv = http_server (conduit_direct ~tls:true stack)
 
 let main =
   foreign "Dispatch.Main" (console @-> kv_ro @-> http @-> job)
