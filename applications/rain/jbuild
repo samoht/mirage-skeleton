@@ -1,0 +1,3 @@
+(executable
+  ((name      rain)
+   (libraries (lwt cstruct notty mirage-console-lwt mirage-console-unix))))
