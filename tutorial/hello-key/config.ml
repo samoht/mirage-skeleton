@@ -6,7 +6,7 @@ let key =
 
 let main =
   foreign
-    ~keys:[Key.abstract key]
+    ~keys:[Key.v key]
     ~packages:[package "duration"]
     "Unikernel.Hello" (time @-> job)
 

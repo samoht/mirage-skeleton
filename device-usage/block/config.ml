@@ -4,11 +4,15 @@ type shellconfig = ShellConfig
 let shellconfig = Type.v ShellConfig
 
 let config_shell =
-  let build _ =
-    Action.run_cmd Bos.Cmd.(v "dd" % "if=/dev/zero" % "of=disk.img" % "count=100000")
+  let dune _ =
+    [ Dune.stanza {|
+(rule
+ (targets disk.img)
+ (action
+  (run dd if=/dev/zero of=disk.img count=100000)))
+|} ]
   in
-  let clean _ = Action.rm (Fpath.v "disk.img") in
-  impl ~build ~clean "Functoria_runtime" shellconfig
+  impl ~dune "Functoria_runtime" shellconfig
 
 let main =
   let packages = [ package "io-page"; package "duration"; package ~build:true "bos"; package ~build:true "fpath" ] in

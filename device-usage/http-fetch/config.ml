@@ -7,7 +7,7 @@ let uri =
 let client =
   let packages = [ package "cohttp-mirage"; package "duration" ] in
   foreign
-    ~keys:[Key.abstract uri]
+    ~keys:[Key.v uri]
     ~packages
     "Unikernel.Client" @@ time @-> console @-> resolver @-> conduit @-> job
 
