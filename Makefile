@@ -36,24 +36,27 @@ TESTS += device-usage/tracing
 endif
 
 CONFIGS = $(patsubst %, %-configure, $(TESTS))
-BUILDS  = $(patsubst %, %-build,     $(TESTS))
 TESTRUN = $(patsubst %, %-testrun,   $(TESTS))
 CLEANS  = $(patsubst %, %-clean,     $(TESTS))
 
 all: build
 
 configure: $(CONFIGS)
-build: $(BUILDS)
 testrun: $(TESTRUN)
 clean: $(CLEANS)
 
-## default tests
-%-configure:
-	cd $* && $(MIRAGE) configure -t $(MODE) $(MIRAGE_FLAGS)
+build: duniverse
+	dune build @install
 
-%-build: %-configure
-	-cp Makefile.user $*
-	cd $* && $(MAKE) depend && $(MAKE)
+duniverse: dune-get
+	duniverse pull
+
+dune-get: configure
+	duniverse init --opam-repo=$(DUNIVERSE_INIT)
+
+## default tests
+%-configure: $*/
+	$(MIRAGE) configure -f $*/config.ml -t $(MODE) $(MIRAGE_FLAGS)
 
 %-clean:
 	-cd $* && mirage clean
