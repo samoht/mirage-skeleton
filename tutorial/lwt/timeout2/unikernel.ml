@@ -9,9 +9,11 @@ module Timeout2 (C: Mirage_console.S) (Time: Mirage_time.S) (R: Mirage_random.S)
       (t >|= fun v -> Some v);
     ]
 
+  let generate i = R.generate i
+
   let start c _time _r =
     let t =
-      Time.sleep_ns (Duration.of_ms (Randomconv.int ~bound:3000 R.generate))
+      Time.sleep_ns (Duration.of_ms (Randomconv.int ~bound:3000 generate))
       >|= fun () -> "Heads"
     in
     timeout (Duration.of_sec 2) t >>= function

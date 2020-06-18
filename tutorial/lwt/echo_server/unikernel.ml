@@ -2,10 +2,12 @@ open Lwt.Infix
 
 module Echo_server (C: Mirage_console.S) (Time: Mirage_time.S) (R: Mirage_random.S) = struct
 
+  let generate i = R.generate i
+
   let read_line () =
-    Time.sleep_ns (Duration.of_ms (Randomconv.int ~bound:2500 R.generate))
+    Time.sleep_ns (Duration.of_ms (Randomconv.int ~bound:2500 generate))
     >|= fun () ->
-    String.make (Randomconv.int ~bound:20 R.generate) 'a'
+    String.make (Randomconv.int ~bound:20 generate) 'a'
 
   let start c _time _r =
     let rec echo_server = function
