@@ -59,8 +59,7 @@ dune-get: configure
 	$(MIRAGE) configure -f $*/config.ml -t $(MODE) $(MIRAGE_FLAGS)
 
 %-clean:
-	-cd $* && mirage clean
-	-$(RM) $*/Makefile.user
+	$(MIRAGE) clean -f $*/config.ml
 
 %-testrun:
 	$(SUDO) sh ./testrun.sh $*
